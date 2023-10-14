@@ -29,14 +29,23 @@ const listUserByID = async (req = request, res = response) =>{
     const {id} = req.params;
     let conn;
 
+    if(isNaN(id)){
+        res.status(400).json({msg: `The ID ${id} is invalid`});
+        return
+    }
+
     try{
         conn = await pool.getConnection();
 
-        const users = await conn.query(usersModel.getByID, [id],(err) =>{
+        const [users] = await conn.query(usersModel.getByID, [id],(err) =>{
             if(err){
                 throw err;
             }
         })
+        if(!users){
+            res.status(404).json({msg: `User with ID ${id} not found`});
+            return
+        }
         res.json(users);
     } catch (error){
         console.log(error);
@@ -49,4 +58,28 @@ const listUserByID = async (req = request, res = response) =>{
     
 }
 
-module.exports = {listUsers, listUserByID}
+const addUser = async (req = request, res = response) =>{
+    let conn;
+
+    try{
+        conn = await pool.getConnection();
+
+        const userAdded = await conn.query(usersModel.addRow, [user], (err) =>{
+            if(err) throw err;
+        })
+        console.log(userAdded);
+        res.json(userAdded);
+    }catch(error){
+        console.log(error);
+        res.status(500).json(error);
+
+    }finally{
+        if(conn) conn.end();
+
+    }
+}
+
+module.exports = {listUsers, listUserByID, addUser}
+
+
+// routes   -     controllers   - models(BD)
