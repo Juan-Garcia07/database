@@ -70,7 +70,7 @@ const addUser = async (req = request, res = response) => {
         is_active = 1
     }= req.body;
 
-    if(!username || !password || !email || !name || !lastname || !phonenumber || !role_id){
+    if(!username || !password || !email || !name || !lastname || !role_id){
         res.status(400).json({msg: 'Missing information'});
         return;
     }
