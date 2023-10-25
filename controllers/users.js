@@ -114,6 +114,22 @@ const addUser = async (req = request, res = response) => {
      }
 }
 
+const updateUser = async (req = request, res = response) =>{
+    let conn;
+
+    const{
+        username,
+        password,
+        email,
+        name,
+        lastname,
+        phonenumber,
+        role_id,
+        is_active
+
+    } = req.body;
+}
+
 const deleteUser = async (req = request, res = response) =>{
     let conn;
     const {id} = req.params;
@@ -156,7 +172,7 @@ const deleteUser = async (req = request, res = response) =>{
   
 }
 
-module.exports = {listUsers, listUserByID, addUser, deleteUser}
+module.exports = {listUsers, listUserByID, addUser, deleteUser, updateUser}
 
 
 // routes   -     controllers   - models(BD)
