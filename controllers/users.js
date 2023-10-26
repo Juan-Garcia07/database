@@ -128,6 +128,85 @@ const updateUser = async (req = request, res = response) =>{
         is_active
 
     } = req.body;
+
+    const {id} =req.params;
+
+    let userNewData = [
+        username,
+        password,
+        email,
+        name,
+        lastname,
+        phonenumber,
+        role_id,
+        is_active
+    ];
+
+    try {
+        conn = await pool.getConnection();
+        
+        const [userExists] = await conn.query(usersModel.getByID, [id], (err) => {
+            if(err) throw err;
+
+        }
+
+        );
+
+        if(!userExists || userExists.is_active === 0){
+            res.status(404).json({msg: `user with ID ${id} not found`});
+            return
+        }
+
+        const [usernameExist] = await conn.query(usersModel.getByUsername, [username], (err) => {
+            if(err) throw err;
+        })
+        if (usernameExist){
+            res.status(409).json({msg: `Username ${username} already exists`});
+            return;
+        }
+
+        const [emailExists] = await conn.query(usersModel.getByEmail, [email], (err) => {
+            if(err) throw err;
+        })
+        if (emailExists){
+            res.status(409).json({msg: `Email ${email} already exists`});
+            return;
+        }
+
+        const userOldData = [
+            userExists.username,
+            userExists.password,
+            userExists.email,
+            userExists.name,
+            userExists.lastname,
+            userExists.phonenumber,
+            userExists.role_id,
+            userExists.is_active,
+        ];
+
+        userNewData.forEach((userData, index) => {
+            if(!userData){
+                userNewData[index] = userOldData[index];
+            }
+        })
+
+        const userUpdated = await conn.query(
+            usersModel.updateRow,
+            [...userNewData, id],
+            (err) => {
+                if (err) throw err;
+            }
+        )
+        if (userUpdated.affectedRows === 0){
+            throw new Error('User not updated');
+        }
+        res.json({msg:'user updated succesfully'});
+    }catch (error){
+        console.log(error);
+        res.status(500).json(error);
+    }finally{
+        if(conn) conn.end();
+    }
 }
 
 const deleteUser = async (req = request, res = response) =>{
