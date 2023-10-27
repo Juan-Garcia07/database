@@ -261,7 +261,52 @@ const deleteUser = async (req = request, res = response) =>{
   
 }
 
-module.exports = {listUsers, listUserByID, addUser, deleteUser, updateUser}
+const signInUser = async (req = request, res = response) =>{
+    let conn;
+
+    const {username, password} = req.body;
+
+    try{
+        conn = await pool.getConnection();
+
+        if(!username || !password){
+            res.status(400).json({msg: 'You must send Username and password'});
+            return;
+        }
+
+        const [user] = await conn.query(usersModel.getByUsername,
+            [username],
+            (err) =>{
+                if(err)throw err;
+            }
+            );
+
+            if (!user){
+                res.status(400).json({msg: `Wrong username or password`});
+                return;
+            }
+
+            const passwordOK =await bcrypt.compare(password, user.password);
+
+            if(!passwordOK){
+                res.status(404).json({msg: `Wrong username or password`});
+                return;
+            }
+
+            delete(user.password);
+            delete(user.created_at);
+            delete(user.updated_at);
+            
+            res.json(user);
+    }catch (error) {
+        console.log(error);
+        res.status(500).json(error);
+    }finally{
+        if(conn) conn.end();
+    }
+}
+
+module.exports = {listUsers, listUserByID, addUser, deleteUser, updateUser,signInUser}
 
 
 // routes   -     controllers   - models(BD)
