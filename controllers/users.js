@@ -1,5 +1,6 @@
 const {request, response} = require('express');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const usersModel = require('../models/users');
 const pool = require('../db');
 
@@ -296,8 +297,18 @@ const signInUser = async (req = request, res = response) =>{
             delete(user.password);
             delete(user.created_at);
             delete(user.updated_at);
+
+            //JWT
+            const token = jwt.sign({
+                id: user.id,
+                username: user.username,
+                role_id: user.role_id
+            },
+            process.env.JWT_SECRET_KEY,
+            {expiresIn: '5m'}
+            );
             
-            res.json(user);
+            res.json({user, token});
     }catch (error) {
         console.log(error);
         res.status(500).json(error);
